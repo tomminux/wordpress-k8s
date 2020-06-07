@@ -24,7 +24,7 @@ subsets:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: pv-gsfs-k8s
+  name: blog-apps-pv
   namespace: blog-apps
 spec:
   capacity:
@@ -33,7 +33,7 @@ spec:
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Recycle
-  storageClassName: gsfs
+  storageClassName: blog-apps-sc
   glusterfs:
     endpoints: glusterfs-cluster
     path: k8s-udf-storage
@@ -42,17 +42,17 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: pvc-gsfs-k8s
+  name: blog-apps-pvc
   namespace: blog-apps
   labels:
-    app: pvc-gsfs-k8s
+    app: blog-apps
 spec:
   accessModes:
     - ReadWriteMany
   resources:
     requests:
       storage: 5Gi
-  storageClassName: gsfs
+  storageClassName: blog-apps-sc
 ---
 ## ----------------------------------------------------------------------------
 ## ..:: Mysql POD / Service Configuration ::..
@@ -101,6 +101,5 @@ spec:
       volumes:
       - name: mysql-persistent-storage
         persistentVolumeClaim:
-          claimName: pvc-gsfs-k8s
+          claimName: blog-apps-pvc
 ---
-  
