@@ -1,0 +1,106 @@
+## ----------------------------------------------------------------------------
+## ..:: Persistent Volume Configuration ::..
+##-----------------------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: glusterfs-cluster
+  namespace: blog-apps
+spec:
+  ports:
+  - port: 1
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: glusterfs-cluster
+  namespace: blog-apps
+subsets:
+  - addresses:
+      - ip: 10.1.20.20
+    ports:
+      - port: 1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-gsfs-k8s
+  namespace: blog-apps
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: gsfs
+  glusterfs:
+    endpoints: glusterfs-cluster
+    path: k8s-udf-storage
+    readOnly: false
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-gsfs-k8s
+  namespace: blog-apps
+  labels:
+    app: pvc-gsfs-k8s
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: gsfs
+---
+## ----------------------------------------------------------------------------
+## ..:: Mysql POD / Service Configuration ::..
+##-----------------------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: blog-apps
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: mysql
+---
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: blog-apps
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - image: mysql:5.6
+        name: mysql
+        env:
+          # Use secret in real usage
+        - name: MYSQL_ROOT_PASSWORD
+          value: Default1234!
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+          subPath: blog-apps/wordpress/mysql
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: pvc-gsfs-k8s
+---
+  
