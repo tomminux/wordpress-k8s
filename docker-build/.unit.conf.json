@@ -20,7 +20,7 @@
       },
       {
         "action": {
-          "share": "/var/apphome",
+          "share": "/www",
           "fallback": {
             "pass": "applications/wordpress/index"
           }
