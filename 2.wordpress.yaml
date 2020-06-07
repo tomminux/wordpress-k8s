@@ -1,0 +1,77 @@
+## ----------------------------------------------------------------------------
+## ..:: Wordpress POD / Service and Deployment Configuration ::..
+##-----------------------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress
+  namespace: blog-apps
+  labels:
+    app: wordpress
+spec:
+  type: ClusterIP
+  ports:
+  - name: wordpress-80
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+      app: wordpress
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress
+  namespace: blog-apps
+  labels:
+    app: wordpress
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: wordpress
+        version: v1
+    spec:
+      containers:
+      - env:
+        - name: service_name
+          value: wordpress
+        image:  registry.f5-udf.com:5000/wordpress:unit
+        imagePullPolicy: IfNotPresent
+        name: wordpress
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        volumeMounts:
+        - name: wordpress-persistent-storage
+          mountPath: /www
+          subPath: blog-apps/wordpress/wordpress
+      volumes:
+      - name: wordpress-persistent-storage
+        persistentVolumeClaim:
+          claimName: blog-apps-pvc
+---
+## ----------------------------------------------------------------------------
+## ..:: NGINX KIC VS Configuration for Hackazon ::..
+##-----------------------------------------------------------------------------
+apiVersion: k8s.nginx.org/v1
+kind: VirtualServer
+metadata:
+  name: wordpress-vs
+  namespace: blog-apps
+spec:
+  host: wordpress.f5-udf.com
+  upstreams:
+  - name: wordpress
+    service: wordpress
+    port: 80
+  routes:
+  - path: /
+    action:
+      pass: wordpress
