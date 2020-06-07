@@ -286,7 +286,7 @@ data:
                         "class": "Service_HTTP",
                         "remark": "blog-apps-kic-80",
                         "virtualAddresses": [
-                            "10.1.10.101"
+                            "10.1.10.102"
                         ],
                         "pool": "blog-apps-kic-pool-80"
                     },
@@ -310,7 +310,7 @@ data:
                         "class": "Service_HTTP",
                         "remark": "blog-apps-kic-443",
                         "virtualAddresses": [
-                            "10.1.10.101"
+                            "10.1.10.102"
                         ],
                         "virtualPort": 443,
                         "pool": "blog-apps-kic-pool-443"
