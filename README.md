@@ -1,3 +1,11 @@
 # Running Wordpress in a Kubernetes Cluster
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus elementum enim vitae urna scelerisque fringilla. Ut facilisis faucibus vehicula. Nunc condimentum ullamcorper leo in condimentum. Sed imperdiet eros et ligula volutpat, a egestas risus ornare. Etiam ornare aliquet malesuada. Quisque egestas tortor semper leo laoreet porttitor. Morbi aliquet aliquam purus, quis malesuada augue imperdiet non. Nulla euismod arcu et commodo aliquam. Duis neque neque, scelerisque eget dictum id, scelerisque vel augue. Praesent condimentum, leo vitae varius tincidunt, augue elit bibendum orci, id ullamcorper mauris sem volutpat augue. Aliquam quis eros in purus dictum auctor. Proin sagittis venenatis pulvinar. Mauris rhoncus pretium est, in condimentum ante commodo nec. Sed finibus purus lectus, eu ullamcorper dolor fermentum nec. Vivamus vehicula congue orci, id efficitur libero vulputate sed. Vivamus est lacus, volutpat et tempus sed, euismod a odio.
+A collection of YAML files to deploy Wordpress in k8s with NGINX Ingress Controller in a Kubernetes Cluster.
+
+This specific version of the yaml files collection will assume that we can create a k8s PV and PVC over a Gluster Filesystem exporting a volume called "k8s-udf-storage".
+
+YAML files are written to deploy the Wordpress pod in the "blog-apps" k8s tenant 
+
+As another prerequisite, in that specific volume on the GlusterFS Server, a path called "blog-apps/wordpress/wordpress" directory must be present and filled with content taken from latest.tar.gz official wordpress repository.
+
+The pod will execute Wordpress and will need to access this directory with UID=999 and GID=999
