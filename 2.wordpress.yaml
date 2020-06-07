@@ -43,7 +43,7 @@ spec:
         - name: service_name
           value: wordpress
         image:  registry.f5-udf.com:5000/wordpress:unit
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         name: wordpress
         ports:
         - containerPort: 8080
