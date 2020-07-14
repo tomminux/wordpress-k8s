@@ -41,7 +41,7 @@ spec:
         volumeMounts:
         - name: mysql-persistent-storage
           mountPath: /var/lib/mysql
-          subPath: blog-apps/mysql
+          subPath: blog-apps/db/mysql
       volumes:
       - name: mysql-persistent-storage
         persistentVolumeClaim:
