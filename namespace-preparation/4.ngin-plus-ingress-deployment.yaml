@@ -3,83 +3,9 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: nginx-ingress
+  name: nginx-ingress 
   namespace: blog-apps
 ---
-## ..:: Cluster Role ::..
-## ----------------------------------------------------------------------------
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1beta1
-metadata:
-  name: nginx-ingress
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - services
-  - endpoints
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  verbs:
-  - get
-  - list
-  - watch
-  - update
-  - create
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  verbs:
-  - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - events
-  verbs:
-  - create
-  - patch
-- apiGroups:
-  - extensions
-  resources:
-  - ingresses
-  verbs:
-  - list
-  - watch
-  - get
-- apiGroups:
-  - "extensions"
-  resources:
-  - ingresses/status
-  verbs:
-  - update
-- apiGroups:
-  - k8s.nginx.org
-  resources:
-  - virtualservers
-  - virtualserverroutes
-  verbs:
-  - list
-  - watch
-  - get
----
-## ..:: Cluster Role Binding ::..
-## ----------------------------------------------------------------------------
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
@@ -114,46 +40,6 @@ metadata:
   namespace: blog-apps
 data:
 ---
-## ..:: NGINX VS and VSRotue ::..
-## ----------------------------------------------------------------------------
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: virtualservers.k8s.nginx.org
-  namespace: blog-apps
-spec:
-  group: k8s.nginx.org
-  versions:
-  - name: v1
-    served: true
-    storage: true
-  scope: Namespaced
-  names:
-    plural: virtualservers
-    singular: virtualserver
-    kind: VirtualServer
-    shortNames:
-    - vs
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: virtualserverroutes.k8s.nginx.org
-  namespace: blog-apps
-spec:
-  group: k8s.nginx.org
-  versions:
-  - name: v1
-    served: true
-    storage: true
-  scope: Namespaced
-  names:
-    plural: virtualserverroutes
-    singular: virtualserverroute
-    kind: VirtualServerRoute
-    shortNames:
-    - vsr
----
 ## ..:: NGINX KIC Deployment ::..
 ## ----------------------------------------------------------------------------
 apiVersion: apps/v1
@@ -162,7 +48,7 @@ metadata:
   name: nginx-ingress
   namespace: blog-apps
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: nginx-ingress
@@ -176,16 +62,23 @@ spec:
     spec:
       serviceAccountName: nginx-ingress
       containers:
-      - image: nginx/nginx-ingress:edge
+      - image: registry.f5-udf.com:5000/nginx-plus-ingress:1.7.2
         imagePullPolicy: Always
-        name: nginx-ingress
+        name: nginx-plus-ingress
         ports:
         - name: http
           containerPort: 80
         - name: https
           containerPort: 443
+        - name: readiness-port
+          containerPort: 8081
        #- name: prometheus
          #containerPort: 9113
+        ##readinessProbe:
+        ##  httpGet:
+        ##    path: /nginx-ready
+        ##    port: readiness-port
+        ##  periodSeconds: 1
         securityContext:
           allowPrivilegeEscalation: true
           runAsUser: 101 #nginx
@@ -204,13 +97,15 @@ spec:
             fieldRef:
               fieldPath: metadata.name
         args:
+          - -nginx-plus
           - -nginx-configmaps=$(POD_NAMESPACE)/nginx-config
           - -default-server-tls-secret=$(POD_NAMESPACE)/default-server-secret
           - -watch-namespace=blog-apps
+         # - -global-configuration=$(POD_NAMESPACE)/nginx-configuration
+         #- -enable-app-protect
          #- -v=3 # Enables extensive logging. Useful for troubleshooting.
          #- -report-ingress-status
          #- -external-service=nginx-ingress
-         #- -enable-leader-election
          #- -enable-prometheus-metrics
 ---
 ## ..:: NGINX Cluster IP Service - Port 80 ::..
@@ -218,7 +113,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: blog-apps-kic-80
+  name: arcadia-kic-80
   namespace: blog-apps
   labels:
     app: nginx-ingress
@@ -240,7 +135,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: blog-apps-kic-443
+  name: arcadia-kic-443
   namespace: blog-apps
   labels:
     app: nginx-ingress
@@ -286,7 +181,7 @@ data:
                         "class": "Service_HTTP",
                         "remark": "blog-apps-kic-80",
                         "virtualAddresses": [
-                            "10.1.10.102"
+                            "10.1.10.101"
                         ],
                         "pool": "blog-apps-kic-pool-80"
                     },
@@ -310,7 +205,7 @@ data:
                         "class": "Service_HTTP",
                         "remark": "blog-apps-kic-443",
                         "virtualAddresses": [
-                            "10.1.10.102"
+                            "10.1.10.101"
                         ],
                         "virtualPort": 443,
                         "pool": "blog-apps-kic-pool-443"

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: blog-apps-bigip-ctlr-deployment
+  name: wordpress-bigip-ctlr-deployment
   namespace: kube-system
 spec:
   selector:
@@ -11,7 +11,7 @@ spec:
   replicas: 1
   template:
     metadata:
-      name: blog-apps-bigip-ctlr
+      name: wordpress-bigip-ctlr
       labels:
         app: k8s-bigip-ctlr
     spec:
@@ -19,7 +19,7 @@ spec:
       # permissions
       serviceAccountName: k8s-bigip-ctlr
       containers:
-        - name: blog-apps-bigip-ctlr
+        - name: wordpress-bigip-ctlr
           image: "f5networks/k8s-bigip-ctlr"
           env:
             - name: BIGIP_USERNAME
