@@ -1,0 +1,55 @@
+## ----------------------------------------------------------------------------
+## ..:: Persistent Volume Configuration ::..
+##-----------------------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: glusterfs-cluster
+  namespace: blog-apps
+spec:
+  ports:
+  - port: 1
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: glusterfs-cluster
+  namespace: blog-apps
+subsets:
+  - addresses:
+      - ip: 10.1.20.20
+    ports:
+      - port: 1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: blog-apps-pv
+  namespace: blog-apps
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: blog-apps-sc
+  glusterfs:
+    endpoints: glusterfs-cluster
+    path: k8s-udf-storage
+    readOnly: false
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: blog-apps-pvc
+  namespace: blog-apps
+  labels:
+    app: blog-apps
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: blog-apps-sc
