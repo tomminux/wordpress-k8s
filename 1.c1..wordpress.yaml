@@ -51,7 +51,7 @@ spec:
         volumeMounts:
         - name: wordpress-persistent-storage
           mountPath: /www
-          subPath: blog-apps/www/wp-c1-customer1
+          subPath: blog-apps/www/wp-c1
       volumes:
       - name: wordpress-persistent-storage
         persistentVolumeClaim:
